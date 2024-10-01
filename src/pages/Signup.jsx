@@ -10,13 +10,13 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(()=>{
-    onAuthStateChanged(auth,(user)=>{
-      if(user){
-        window.location.href = "/profile"
-      }
-    })
-  })
+  // useEffect(()=>{
+  //   onAuthStateChanged(auth,(user)=>{
+  //     if(user){
+  //       window.location.href = "/profile"
+  //     }
+  //   })
+  // })
 
 
   const handleSubmit = async (e) => {
@@ -34,12 +34,13 @@ const Signup = () => {
         progress: undefined,
         theme: "light",
       });
-      window.location.href = "/profile";
+      console.log(auth.currentUser.uid)
       if (user) {
         await setDoc(doc(db, "users", user), {
           name: username,
           email: email,
         });
+        window.location.href = "/profile";
       }
     } catch (error) {
       toast.error(error.message, {
