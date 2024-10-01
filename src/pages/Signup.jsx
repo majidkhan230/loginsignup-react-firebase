@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
 
@@ -9,6 +9,15 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(()=>{
+    onAuthStateChanged(auth,(user)=>{
+      if(user){
+        window.location.href = "/profile"
+      }
+    })
+  })
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +34,7 @@ const Signup = () => {
         progress: undefined,
         theme: "light",
       });
+      window.location.href = "/profile";
       if (user) {
         await setDoc(doc(db, "users", user), {
           name: username,
