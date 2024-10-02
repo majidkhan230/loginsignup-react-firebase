@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase"; // Import your firebase configuration
+import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
@@ -11,31 +11,24 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  // useEffect to check if the user is already logged in
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        navigate("/profile"); // Redirect to the profile page if the user is logged in
       }
     });
-    return () => unsubscribe(); // Cleanup subscription on unmount
   }, [navigate]);
 
-  // Function to handle signup form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Store user data in Firestore
       await setDoc(doc(db, "users", user.uid), {
         name: username,
         email: email,
       });
 
-      // Display success message
       toast.success("User registered successfully!", {
         position: "top-center",
         autoClose: 3000,
@@ -47,10 +40,8 @@ const Signup = () => {
         theme: "light",
       });
 
-      // Redirect to the profile page
       navigate("/profile");
     } catch (error) {
-      // Display error message
       toast.error(error.message, {
         position: "bottom-center",
         autoClose: 3000,
