@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { auth, db } from "../firebase";
+import { Link, useNavigate } from "react-router-dom";
+import { auth, db } from "../firebase"; // Import your firebase configuration
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
@@ -9,21 +9,33 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  // useEffect(()=>{
-  //   onAuthStateChanged(auth,(user)=>{
-  //     if(user){
-  //       window.location.href = "/profile"
-  //     }
-  //   })
-  // })
+  // useEffect to check if the user is already logged in
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate("/profile"); // Redirect to the profile page if the user is logged in
+      }
+    });
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, [navigate]);
 
-
+  // Function to handle signup form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      const user = auth.currentUser.uid;
+      // Create user with email and password
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Store user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: username,
+        email: email,
+      });
+
+      // Display success message
       toast.success("User registered successfully!", {
         position: "top-center",
         autoClose: 3000,
@@ -34,15 +46,11 @@ const Signup = () => {
         progress: undefined,
         theme: "light",
       });
-      console.log(auth.currentUser.uid)
-      if (user) {
-        await setDoc(doc(db, "users", user), {
-          name: username,
-          email: email,
-        });
-        window.location.href = "/profile";
-      }
+
+      // Redirect to the profile page
+      navigate("/profile");
     } catch (error) {
+      // Display error message
       toast.error(error.message, {
         position: "bottom-center",
         autoClose: 3000,
@@ -71,11 +79,11 @@ const Signup = () => {
           <div className="mt-0 hidden md:mt-20 md:flex flex-col items-center gap-2">
             <h3 className="text-white">Already have an account?</h3>
             <Link to={"/login"}>
-              <button className="rounded-lg bg-white text-black font-bold px-6 py-2  md:mb-1">Sign In</button>
+              <button className="rounded-lg bg-white text-black font-bold px-6 py-2 md:mb-1">Sign In</button>
             </Link>
           </div>
         </div>
-        <div className="right w-full md:w-1/2  flex flex-col items-center md:p-1 p-2 xl:p-5">
+        <div className="right w-full md:w-1/2 flex flex-col items-center md:p-1 p-2 xl:p-5">
           <div className="wrapper w-full h-full flex flex-col items-center gap-2">
             <h1 className="font-bold text-[#CECE48] text-2xl mt-2 md:mt-0 xl:mt-10">Create Account</h1>
             <div className="icons flex gap-2">
@@ -84,7 +92,7 @@ const Signup = () => {
               <img src="/assets/images/l-icon.png" className="w-10" alt="" />
             </div>
             <p className="text-sm">or use your email account</p>
-            <form className="form flex flex-col items-center gap-2 " onSubmit={handleSubmit}>
+            <form className="form flex flex-col items-center gap-2" onSubmit={handleSubmit}>
               <input
                 onChange={(e) => setUsername(e.target.value)}
                 value={username}
@@ -124,7 +132,6 @@ const Signup = () => {
       </div>
     </div>
   );
-
 };
 
 export default Signup;
